@@ -60,7 +60,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export default function PrimarySearchAppBar() {
+export default function PrimarySearchAppBar({ searchInput, setSearchInput }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
 
@@ -163,11 +163,11 @@ export default function PrimarySearchAppBar() {
 
   const titleName = displayName + "の保管庫";
 
-  const errorName = "あなたの名前が長すぎます！！"
+  const errorName = "あなたの名前が長すぎます！！";
 
   const changeName = (e) => {
-    console.log(e.target.value)
-  }
+    setSearchInput(e.target.value);
+  };
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -194,10 +194,12 @@ export default function PrimarySearchAppBar() {
           >
             {titleName.length < 43 ? titleName : errorName}
           </Typography>
-          <Search className={css`
-            position: relative;
-            left: 30px;
-          `}>
+          <Search
+            className={css`
+              position: relative;
+              left: 30px;
+            `}
+          >
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
@@ -205,6 +207,7 @@ export default function PrimarySearchAppBar() {
               placeholder="Search…"
               inputProps={{ "aria-label": "search" }}
               onChange={changeName}
+              value={searchInput}
             />
           </Search>
           <Box sx={{ flexGrow: 1 }} />

@@ -19,14 +19,24 @@ async function getImageSize(url) {
 }
 
 const Storage = () => {
-  // [{ url, fileNameWithExt }, {  }, ...]
-  const [urlWithFileNameWithExtLists, setUrlWithFileNameWithExtLists] =
-    useState([]);
+  // [{ url, fileNameWithExt, w, h }, {  }, ...]
+  const [images, setImages] = useState([]);
+
+  const [searchInput, setSearchInput] = useState("");
+
+  const filteredImages = useMemo(() => {
+    if (searchInput.length === 0) {
+      return images;
+    }
+
+    return images.filter(
+      ({ fileNameWithExt }) => fileNameWithExt.indexOf(searchInput) !== -1
+    );
+  }, [searchInput, images]);
 
   const fileNameWithExts = useMemo(
-    () =>
-      urlWithFileNameWithExtLists.map(({ fileNameWithExt }) => fileNameWithExt),
-    [urlWithFileNameWithExtLists]
+    () => images.map(({ fileNameWithExt }) => fileNameWithExt),
+    [images]
   );
   // lightbox-react用 state
   const [photoIndex, setIndex] = useState(0);
@@ -67,7 +77,7 @@ const Storage = () => {
 
         // urlsのデータがここで完成する
         // [Promise, Promise, Promise, ...] => [{ url, fileNameWithExt }, ...]
-        const urlWithFileNameWithExtLists = await Promise.all(
+        const images = await Promise.all(
           fileNameWithExts.map(async (fileNameWithExt) => {
             const urls = `gs://pictures-storage-5b9d3.appspot.com/images/${fileNameWithExt}`;
 
@@ -89,7 +99,7 @@ const Storage = () => {
           })
         );
 
-        setUrlWithFileNameWithExtLists(urlWithFileNameWithExtLists);
+        setImages(images);
       }
     );
   }, []);
@@ -106,6 +116,8 @@ const Storage = () => {
         `}
       >
         <Header
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
           className={css`
             position: fixed;
           `}
@@ -125,112 +137,108 @@ const Storage = () => {
                 gap: 60px 40px;
               `}
             >
-              {urlWithFileNameWithExtLists.map(
-                ({ url, fileNameWithExt, w, h }, index) => (
+              {filteredImages.map(({ url, fileNameWithExt, w, h }, index) => (
+                <div
+                  key={url}
+                  className={css`
+                    position: relative;
+                    justify-content: space-between;
+                  `}
+                >
                   <div
-                    key={url}
                     className={css`
                       position: relative;
-                      justify-content: space-between;
+                      height: auto;
+                      width: 200px;
                     `}
                   >
+                    <img
+                      src={url}
+                      alt="nothing"
+                      className={css`
+                        &:hover {
+                          cursor: pointer;
+                          opacity: 0.4;
+                        }
+                        width: 100%;
+                        height: 100%;
+
+                        border: 10px solid #d1d1d1;
+                        border-style: outset;
+                      `}
+                    />
                     <div
                       className={css`
-                        position: relative;
-                        height: auto;
-                        width: 200px;
-                      `}
-                    >
-                      <img
-                        src={url}
-                        alt="nothing"
-                        className={css`
-                          &:hover {
-                            cursor: pointer;
-                            opacity: 0.4;
-                          }
-                          width: 100%;
-                          height: 100%;
-
-                          border: 10px solid #d1d1d1;
-                          border-style: outset;
-                        `}
-                      />
-                      <div
-                        className={css`
-                          position: absolute;
-                          top: 0;
-                          bottom: 0;
-                          width: 100%;
-                          height: 100%;
-                          opacity: 0;
-                          transition: 0.5s;
-                          cursor: pointer;
-                          &:hover {
-                            opacity: 1;
-                            transition: 0.5s;
-                          }
-                        `}
-                        onClick={() => {
-                          setisOpen(true);
-                          setIndex(index);
-                        }}
-                      >
-                        <span
-                          className={css`
-                            display: block;
-                            text-align: center;
-                            font-size: 18px;
-                            color: black;
-                            font-weight: bold;
-                          `}
-                        >
-                          {fileNameWithExt} <br />
-                          {w + "x" + h}
-                        </span>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => handleDelete(fileNameWithExt)}
-                      className={css`
                         position: absolute;
-                        left: 80px;
-                        top: -20px;
+                        top: 0;
+                        bottom: 0;
+                        width: 100%;
+                        height: 100%;
+                        opacity: 0;
+                        transition: 0.5s;
+                        cursor: pointer;
+                        &:hover {
+                          opacity: 1;
+                          transition: 0.5s;
+                        }
                       `}
+                      onClick={() => {
+                        setisOpen(true);
+                        setIndex(index);
+                      }}
                     >
-                      delete!
-                    </Button>
-                    {isOpen && (
-                      <Lightbox
-                        mainSrc={urlWithFileNameWithExtLists[photoIndex].url}
-                        nextSrc={
-                          urlWithFileNameWithExtLists[
-                            (photoIndex + 1) % fileNameWithExts.length
-                          ].url
-                        }
-                        prevSrc={
-                          urlWithFileNameWithExtLists[
-                            (photoIndex + fileNameWithExts.length - 1) %
-                              fileNameWithExts.length
-                          ].url
-                        }
-                        onCloseRequest={() => setisOpen(false)}
-                        onMovePrevRequest={() =>
-                          setIndex(
-                            (photoIndex + fileNameWithExts.length - 1) %
-                              fileNameWithExts.length
-                          )
-                        }
-                        onMoveNextRequest={() =>
-                          setIndex((photoIndex + 1) % fileNameWithExts.length)
-                        }
-                        imageTitle={fileNameWithExts[photoIndex]}
-                        imageCaption={fileNameWithExts[photoIndex]}
-                      />
-                    )}
+                      <span
+                        className={css`
+                          display: block;
+                          text-align: center;
+                          font-size: 18px;
+                          color: black;
+                          font-weight: bold;
+                        `}
+                      >
+                        {fileNameWithExt} <br />
+                        {w + "x" + h}
+                      </span>
+                    </div>
                   </div>
-                )
-              )}
+                  <Button
+                    onClick={() => handleDelete(fileNameWithExt)}
+                    className={css`
+                      position: absolute;
+                      left: 80px;
+                      top: -20px;
+                    `}
+                  >
+                    delete!
+                  </Button>
+                  {isOpen && (
+                    <Lightbox
+                      mainSrc={images[photoIndex].url}
+                      nextSrc={
+                        images[(photoIndex + 1) % fileNameWithExts.length].url
+                      }
+                      prevSrc={
+                        images[
+                          (photoIndex + fileNameWithExts.length - 1) %
+                            fileNameWithExts.length
+                        ].url
+                      }
+                      onCloseRequest={() => setisOpen(false)}
+                      onMovePrevRequest={() =>
+                        setIndex(
+                          (photoIndex + fileNameWithExts.length - 1) %
+                            fileNameWithExts.length
+                        )
+                      }
+                      onMoveNextRequest={() =>
+                        setIndex((photoIndex + 1) % fileNameWithExts.length)
+                      }
+                      imageTitle={fileNameWithExts[photoIndex]}
+                      imageCaption={fileNameWithExts[photoIndex]}
+                    />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </main>
