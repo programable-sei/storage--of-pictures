@@ -3,8 +3,8 @@ import { storage, db } from "./Firebase";
 import { getDownloadURL, ref, deleteObject } from "firebase/storage";
 import { css } from "@emotion/css";
 import Header from "./Header";
-import Lightbox from "lightbox-react";
-import "lightbox-react/style.css";
+import Lightbox from "react-18-image-lightbox";
+import "react-18-image-lightbox/style.css";
 import { Button } from "@mui/material";
 
 async function getImageSize(url) {
@@ -155,10 +155,6 @@ const Storage = () => {
                           border: 10px solid #d1d1d1;
                           border-style: outset;
                         `}
-                        onClick={() => {
-                          setisOpen(true);
-                          setIndex(index);
-                        }}
                       />
                       <div
                         className={css`
@@ -175,6 +171,10 @@ const Storage = () => {
                             transition: 0.5s;
                           }
                         `}
+                        onClick={() => {
+                          setisOpen(true);
+                          setIndex(index);
+                        }}
                       >
                         <span
                           className={css`
