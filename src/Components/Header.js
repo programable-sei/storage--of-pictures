@@ -212,9 +212,8 @@ export default function PrimarySearchAppBar() {
             <img
               size="large"
               edge="end"
-              // aria-label="account of current user"
+              alt="header icon"
               aria-controls={menuId}
-              aria-haspopup="true"
               onClick={handleProfileMenuOpen}
               color="inherit"
               src={photoURL}
